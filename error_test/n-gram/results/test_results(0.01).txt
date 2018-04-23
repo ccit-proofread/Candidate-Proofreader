@@ -1,0 +1,11 @@
+P : 103123	 N : 4896877
+TP : 94852	 FP : 520563
+TN : 4376314	 FN : 8271
+TPR : 84376	 TPW : 10476Accuracy : 0.89423 
+Error_Rate : 0.10577 
+Recall : 0.91979 
+Precision : 0.15413 
+F1_Score : 0.26401 
+Correction_Rate : 0.88955 
+Specificity : 0.89369 
+Delta : -4.22977 

@@ -1,0 +1,11 @@
+P : 10414	 N : 4989586
+TP : 9974	 FP : 528052
+TN : 4461534	 FN : 440
+TPR : 9133	 TPW : 841Accuracy : 0.89430 
+Error_Rate : 0.10570 
+Recall : 0.95775 
+Precision : 0.01854 
+F1_Score : 0.03637 
+Correction_Rate : 0.91568 
+Specificity : 0.89417 
+Delta : -49.82898 
