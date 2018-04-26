@@ -10,7 +10,7 @@ from run_epoch import *
 
 #定义主函数并执行
 def main():
-    row_num = DATA_SIZE
+    row_num = TEST_DATA_SIZE
     with open(DATA1_PATH, 'r', encoding='utf-8') as f:
         rows = []
         cnt = 0
@@ -64,10 +64,8 @@ def main():
             target.append(int(one))
     with open(VOCAB_PATH, 'r', encoding='utf-8') as f:
         char_set = f.read().split('\n')
-    
 
-    test_data=(data1[TRAIN_DATA_SIZE+VALID_DATA_SIZE:DATA_SIZE],data2[TRAIN_DATA_SIZE+VALID_DATA_SIZE:DATA_SIZE],
-               data3[TRAIN_DATA_SIZE + VALID_DATA_SIZE:DATA_SIZE],target[TRAIN_DATA_SIZE+VALID_DATA_SIZE:DATA_SIZE])
+    test_data=(data1,data2,data3,target)
     
     initializer = tf.random_uniform_initializer(-0.01, 0.01)
     with tf.variable_scope("Proofreading_model", reuse=None, initializer=initializer):
@@ -77,7 +75,6 @@ def main():
 
     cdir = RESULT_DIR
     if(not os.path.exists(cdir)):
-        #print(cdir)
         os.mkdir(cdir)
 
     with tf.Session() as session:
@@ -96,7 +93,7 @@ def main():
         file = open(TEST_RESULT_PATH, 'w')
         print("In testing with model of epoch %d: " % (i-1))
         run_epoch(session, test_model, test_data, tf.no_op(), False,
-                  TEST_BATCH_SIZE, TEST_STEP_SIZE, char_set, file,False,False)
+                  TEST_BATCH_SIZE, TEST_STEP_SIZE, char_set, file, False)
         file.close()
 
 if __name__ == "__main__":

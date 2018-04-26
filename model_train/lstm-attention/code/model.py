@@ -1,26 +1,19 @@
 # -- coding: utf-8 --
 # =====================================================================
 import tensorflow as tf
-import os
-import numpy as np
-import time
-import random
 from paras import *
-
 
 class Proofreading_Model(object):
     def __init__(self, is_training, batch_size):
         """
         :param is_training: is or not training, True/False
         :param batch_size: the size of one batch
-        :param num_steps: the length of one lstm
         """
         # 定义网络参数
         self.learning_rate = tf.Variable(float(LEARNING_RATE), trainable=False, dtype=tf.float32)
         self.learning_rate_decay_op = self.learning_rate.assign(self.learning_rate * LEARNING_RATE_DECAY_FACTOR)
         self.global_step = 0
         self.global_epoch = 0
-        self.batch_size = batch_size
 
         # 定义输入层,其维度是batch_size * num_steps
         self.pre_input = tf.placeholder(tf.int32, [batch_size, None])
@@ -134,19 +127,8 @@ class Proofreading_Model(object):
             # global_step从0开始
             tf.summary.scalar('cost', self.cost)
             tf.summary.scalar('ave_cost', self.ave_cost)
-        # 只在训练模型时定义反向传播操作。
+            tf.summary.scalar('learning_rate', self.learning_rate)
 
-        # 记录accuracy
-        with tf.variable_scope('accuracy'):
-            correct_prediction = tf.equal(self.targets, tf.cast(tf.argmax(self.logits, -1), tf.int32))
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            self.ave_accuracy = tf.Variable(0.0, trainable=False, dtype=tf.float32)
-            self.ave_accuracy_op = self.ave_accuracy.assign(tf.divide(
-                tf.add(tf.multiply(self.ave_accuracy, self.global_step), self.accuracy), self.global_step + 1))
-            # global_step从0开始
-            tf.summary.scalar('accuracy', self.accuracy)
-            tf.summary.scalar('ave_accuracy', self.ave_accuracy)
-            # 只在训练模型时定义反向传播操作。
         # 只在训练模型时定义反向传播操作。
         if not is_training: return
 

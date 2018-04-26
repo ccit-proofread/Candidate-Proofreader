@@ -1,15 +1,13 @@
 # -- coding: utf-8 --
 # =====================================================================
-import tensorflow as tf
-import os
 import numpy as np
 import time
 import random
 from paras import *
 
 # 使用给定的模型model在数据data上运行train_op并返回在全部数据上的cost值
-def run_epoch(session, model, data, train_op, is_training, batch_size, step_size, char_set, file,
-              summary_op, summary_writer):
+def run_epoch(session, model, data, train_op, is_training, batch_size, step_size, char_set,
+              file, summary_writer):
     """
     :param session: tf.Session() to compute
     :param model: the proof model already defined
@@ -53,9 +51,9 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
 
         x4, one_hot = is_candidate(x3, y)
 
-        cost, outputs, _, _, ave_cost_op, ave_accuracy_op \
+        cost, outputs, _, _, _,\
             = session.run([model.cost, model.logits, train_op, model.learning_rate_decay_op,
-                           model.ave_cost_op, model.ave_accuracy_op],
+                           model.ave_cost_op],
                           feed_dict={model.pre_input: x1, model.fol_input: x2,
                                      model.candidate_words_input: x3,
                                      model.is_candidate: x4,
@@ -99,7 +97,7 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
 
     # 收集并将cost加入记录
     if (is_training):
-        summary_str = session.run(summary_op, feed_dict={model.pre_input: x1, model.fol_input: x2,
+        summary_str = session.run(model.merged_summary_op, feed_dict={model.pre_input: x1, model.fol_input: x2,
                                                          model.candidate_words_input: x3,
                                                          model.is_candidate: x4,
                                                          model.pre_input_seq_length: x1_seqlen,
@@ -108,6 +106,7 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
                                                          model.one_hot_labels: one_hot
                                                          })
         summary_writer.add_summary(summary_str, model.global_epoch)
+
     if not is_training and file:
         acc = correct_num * 1.0 / len(dataY)  # 求得准确率=正确分类的个数
         print("acc: %.5f\n" % acc)

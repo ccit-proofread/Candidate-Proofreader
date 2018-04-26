@@ -2,8 +2,6 @@
 #=====================================================================
 import tensorflow as tf
 import os
-import numpy as np
-import math
 from model import *
 from paras import *
 from run_epoch import *
@@ -68,7 +66,7 @@ def main():
     train_data=(data1[0:TRAIN_DATA_SIZE],data2[0:TRAIN_DATA_SIZE],data3[0:TRAIN_DATA_SIZE],target[0:TRAIN_DATA_SIZE])
     valid_data=(data1[TRAIN_DATA_SIZE:TRAIN_DATA_SIZE+VALID_DATA_SIZE],
                 data2[TRAIN_DATA_SIZE:TRAIN_DATA_SIZE+VALID_DATA_SIZE],
-                data3[TRAIN_DATA_SIZE:TRAIN_DATA_SIZE + VALID_DATA_SIZE],
+                data3[TRAIN_DATA_SIZE:TRAIN_DATA_SIZE+VALID_DATA_SIZE],
                 target[TRAIN_DATA_SIZE:TRAIN_DATA_SIZE+VALID_DATA_SIZE])
 
     initializer = tf.random_uniform_initializer(-0.01, 0.01)
@@ -82,7 +80,6 @@ def main():
 
     cdir = RESULT_DIR
     if(not os.path.exists(cdir)):
-        #print(cdir)
         os.mkdir(cdir)
 
     with tf.Session() as session:
@@ -96,16 +93,13 @@ def main():
             i = int(ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1])+1
             file = open(RESULT_PATH, 'a')
             train_model.global_epoch=eval_model.global_epoch=i
-            eval_model.global_step=i*VALID_STEP_SIZE
             train_model.global_step=i*TRAIN_STEP_SIZE
         else:
             print("new training...")
             tf.global_variables_initializer().run()
             file = open(RESULT_PATH, 'w')
 
-        # 记录cost
         # 要使用tensorboard，首先定义summary节点，不定义会出错
-        merged_summary_op = train_model.merged_summary_op
         summary_writer = tf.summary.FileWriter(COST_PATH, session.graph)
 
         while i < NUM_EPOCH:
@@ -115,7 +109,7 @@ def main():
             print("In training:")
             file.write("In training:\n")
             run_epoch(session, train_model, train_data, train_model.train_op, True,
-                      TRAIN_BATCH_SIZE, TRAIN_STEP_SIZE, char_set, file, merged_summary_op, summary_writer)
+                      TRAIN_BATCH_SIZE, TRAIN_STEP_SIZE, char_set, file, summary_writer)
             
             #保存模型
             print("saving model...")
@@ -125,7 +119,7 @@ def main():
             print("In evaluating:")
             file.write("In evaluating:\n")
             run_epoch(session, eval_model, valid_data, tf.no_op(), False,
-                      VALID_BATCH_SIZE, VALID_STEP_SIZE, char_set, file, False, False)                                            
+                      VALID_BATCH_SIZE, VALID_STEP_SIZE, char_set, file, False)
             i += 1
             train_model.global_epoch += 1                   
 

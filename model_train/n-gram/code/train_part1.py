@@ -6,46 +6,67 @@ import math
 from paras import *
 
 def main():
+    row_num = TRAIN_DATA_SIZE//2
     with open(DATA1_PATH, 'r', encoding='utf-8') as f:
-        rows = f.read().strip().split('\n')
-        data1 = [one.split() for one in rows]
-        # for one in data1:
-        #     for index, ele in enumerate(one):
-        #         one[index]=int(ele)
+        rows = []
+        cnt = 0
+        for line in f:
+            if(cnt<row_num): 
+                rows.append(line)
+            else:
+                break
+            cnt += 1
+        train_data1 = [one.split() for one in rows]
+        
     with open(DATA2_PATH, 'r', encoding='utf-8') as f:
-        rows = f.read().strip().split('\n')
-        data2 = [one.split() for one in rows]
-        # for one in data2:
-        #     for index, ele in enumerate(one):
-        #         one[index]=int(ele)
+        rows = []
+        cnt = 0
+        for line in f:
+            if(cnt<row_num): 
+                rows.append(line)
+            else:
+                break
+            cnt += 1
+        train_data2 = [one.split() for one in rows]
+        
     with open(DATA3_PATH, 'r', encoding='utf-8') as f:
-        rows = f.read().strip().split('\n')
-        data3 = [one.split() for one in rows]
-        # for one in data3:
-        #     for index, ele in enumerate(one):
-        #         one[index]=int(ele)
+        rows = []
+        cnt = 0
+        for line in f:
+            if(cnt<row_num): 
+                rows.append(line)
+            else:
+                break
+            cnt += 1
+        train_data3 = [one.split() for one in rows]
+        
     with open(TARGET_PATH, 'r', encoding='utf-8') as f:
-        target = f.read().strip().split('\n')
-        # rows = f.read().strip().split('\n')
-        # target = []
-        # for one in rows:
-        #     target.append(int(one))
+        train_target = []
+        cnt = 0
+        for line in f:
+            if(cnt<row_num): 
+                train_target.append(line)
+            else:
+                break
+            cnt += 1
+        
     with open(VOCAB_PATH, 'r', encoding='utf-8') as f:
-        global char_set
         char_set = f.read().split('\n')
 
-    train_data = (data1[0:TRAIN_DATA_SIZE], data2[0:TRAIN_DATA_SIZE], data3[0:TRAIN_DATA_SIZE], target[0:TRAIN_DATA_SIZE])
-
-    train_data1, train_data2, train_data3, train_target = train_data
-
     # 训练
+    if(os.path.exists(COUNT_SAVE_PATH)):
+        print("loading count.dict...")
+        with open(COUNT_SAVE_PATH, 'r', encoding='utf-8') as f:
+            dict = f.read()
+            count = eval(dict)
+    else:
+        count = { "none":0 }
     print("training...")
-    count = { "none":0 }
     pre_bi_right = 0 # 前一个右2元组
     pre_tri = 0 # 前一个3元组
     pre_tri_right = 0  # 前一个右3元组
     pre2_tri_right = 0 # 前两个右3元组
-    for i in range(TRAIN_DATA_SIZE):
+    for i in range(TRAIN_DATA_SIZE//2):
         if(((i+1) % 10000 == 0) or (i == 0)):
             print("training %d row" % (i+1))
         # 二元组统计
