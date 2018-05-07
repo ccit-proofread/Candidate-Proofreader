@@ -12,7 +12,7 @@ def main():
         cnt = 0
         for line in f:
             if(cnt<row_num): 
-                test_data0.append(line)
+                test_data0.append(line.strip())
             else:
                 break
             cnt += 1
@@ -55,7 +55,7 @@ def main():
         cnt = 0
         for line in f:
             if(cnt<row_num): 
-                test_target.append(line)
+                test_target.append(line.strip())
             else:
                 break
             cnt += 1
@@ -66,6 +66,9 @@ def main():
     with open(COUNT_SAVE_PATH, 'r', encoding='utf-8') as f:
         dict = f.read()
         count = eval(dict)
+
+    # for ele in count.items():
+        #print(ele)
     
     print("testing...")
     # 测试
@@ -177,6 +180,7 @@ def main():
                 max_score = ele
                 max_cset_word = test_data3[i][j]
 
+        # print(original_word_score,max_score)
         if(original_word_score < max_score):
             if(original_word_score == 0 and max_score > 0):
                 output_word = int(max_cset_word)
@@ -188,7 +192,7 @@ def main():
             print("testing %d row" % (i+1))
             print("outputs: " + str(char_set[output_word]))
             print("targets: " + str(char_set[target_word]))
-
+        
         # 统计评估
         statistics_evaluation(original_word, output_word, target_word)
 
@@ -214,7 +218,8 @@ def print_evaluation():
     global TP, FP, TN, FN, P, N, TPW, TPR
     P = TP + FN
     N = TN + FP
-
+    if(not os.path.exists('../results/')):
+        os.mkdir('../results/')
     file = open(TEST_RESULT_PATH, 'w')
 
     print("P : %d\t N : %d" % (P,N))
@@ -224,7 +229,7 @@ def print_evaluation():
     print("TN : %d\t FN : %d" % (TN, FN))
     file.write("TN : %d\t FN : %d\n" % (TN, FN))
     print("TPR : %d\t TPW : %d" % (TPR, TPW))
-    file.write("TPR : %d\t TPW : %d" % (TPR, TPW))
+    file.write("TPR : %d\t TPW : %d\n" % (TPR, TPW))
 
     Accuracy = (TP+TN)/(P+N)
     Error_Rate = 1-Accuracy
