@@ -106,19 +106,8 @@ class Proofreading_Model(object):
             # global_step从0开始
             tf.summary.scalar('cost', self.cost)
             tf.summary.scalar('ave_cost', self.ave_cost)
-        # 只在训练模型时定义反向传播操作。
+            tf.summary.scalar('learning_rate', self.learning_rate)
 
-        # 记录accuracy
-        with tf.variable_scope('accuracy'):
-            correct_prediction = tf.equal(self.targets, tf.cast(tf.argmax(self.logits, -1), tf.int32))
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            self.ave_accuracy = tf.Variable(0.0, trainable=False, dtype=tf.float32)
-            self.ave_accuracy_op = self.ave_accuracy.assign(tf.divide(
-                tf.add(tf.multiply(self.ave_accuracy, self.global_step), self.accuracy), self.global_step + 1))
-            # global_step从0开始
-            tf.summary.scalar('accuracy', self.accuracy)
-            tf.summary.scalar('ave_accuracy', self.ave_accuracy)
-            # 只在训练模型时定义反向传播操作。
         # 只在训练模型时定义反向传播操作。
         if not is_training: return
 

@@ -1,16 +1,15 @@
 # -- coding: utf-8 --
 # =====================================================================
-import tensorflow as tf
-import os
 import numpy as np
 import time
 import random
+import copy
 from paras import *
 from evaluation_modules import *
 
 # 使用给定的模型model在数据data上运行train_op并返回在全部数据上的cost值
 def run_epoch(session, model, data, train_op, is_training, batch_size, step_size, char_set, file,
-              summary_op, summary_writer):
+              summary_writer):
     """
     :param session: tf.Session() to compute
     :param model: the proof model already defined
@@ -31,7 +30,7 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
     dataX0, dataX1, dataX2, dataX3, dataY = data
     max_cnt = len(dataY)  # 数据长度
     if is_training:
-        cnt = random.randint(0, max_cnt - batch_size + 1)  # 现在取第cnt个输入
+        cnt = random.randint(0, max_cnt - 1)  # 现在取第cnt个输入
     else:
         cnt = 0
     correct_num = 0  # 正确个数
@@ -44,32 +43,31 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
         x0 = dataX0[cnt:cnt + batch_size]   
 
         x1 = dataX1[cnt:cnt + batch_size]  # 取前文
-        x1, x1_seqlen = Pad_Zero(x1)  # 补0
+        x1_input, x1_seqlen = Pad_Zero(x1)  # 补0
 
         x2 = dataX2[cnt:cnt + batch_size]  # 取后文
-        x2, x2_seqlen = Pad_Zero(x2)  # 补0
+        x2_input, x2_seqlen = Pad_Zero(x2)  # 补0
 
         x3 = dataX3[cnt:cnt + batch_size]
-        x3, _ = Pad_Zero(x3)
+        x3_input, _ = Pad_Zero(x3)
 
         y = dataY[cnt:cnt + batch_size]  # 取结果
 
-        x4, one_hot = is_candidate(x3, y)
+        x4, one_hot = is_candidate(x3_input, y)
 
-        cost, outputs, _, _, ave_cost_op, ave_accuracy_op \
+        cost, outputs, _, _, _,\
             = session.run([model.cost, model.logits, train_op, model.learning_rate_decay_op,
-                           model.ave_cost_op, model.ave_accuracy_op],
-                          feed_dict={model.pre_input: x1, model.fol_input: x2,
-                                     model.candidate_words_input: x3,
+                           model.ave_cost_op],
+                          feed_dict={model.pre_input: x1_input, model.fol_input: x2_input,
+                                     model.candidate_words_input: x3_input,
                                      model.is_candidate: x4,
                                      model.pre_input_seq_length: x1_seqlen,
                                      model.fol_input_seq_length: x2_seqlen,
-                                     model.targets: y,
                                      model.one_hot_labels: one_hot
                                      })
         if (is_training):
             model.global_step += 1
-            cnt = random.randint(0, max_cnt - batch_size + 1)
+            cnt = random.randint(0, max_cnt - 1)
 
         else:
             cnt += batch_size
@@ -82,11 +80,11 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
 
         original_classes = []
         for i in range(len(x0)):
-            for j,ele in enumerate(x3[i]):
+            for j,ele in enumerate(x3_input[i]):
                 if(x0[i] == ele):
                      original_classes.append(j)
 
-        classes = [x3[i][j] for i,j in enumerate(output_classes)]
+        classes = [x3_input[i][j] for i,j in enumerate(output_classes)]
         target_index = np.array(y).ravel()
         
         correct_num = correct_num + sum(classes == target_index)
@@ -112,20 +110,21 @@ def run_epoch(session, model, data, train_op, is_training, batch_size, step_size
 
     # 收集并将cost加入记录
     if (is_training):
-        summary_str = session.run(summary_op, feed_dict={model.pre_input: x1, model.fol_input: x2,
-                                                         model.candidate_words_input: x3,
+        summary_str = session.run(model.merged_summary_op, feed_dict={model.pre_input: x1_input, model.fol_input: x2_input,
+                                                         model.candidate_words_input: x3_input,
                                                          model.is_candidate: x4,
                                                          model.pre_input_seq_length: x1_seqlen,
                                                          model.fol_input_seq_length: x2_seqlen,
-                                                         model.targets: y,
                                                          model.one_hot_labels: one_hot
                                                          })
         summary_writer.add_summary(summary_str, model.global_epoch)
+
     if not is_training and file:
         print_evaluation(file)
 
 
-def Pad_Zero(x):
+def Pad_Zero(x_data):
+    x = copy.deepcopy(x_data)
     x_seqlen = []
     row_len = len(x)
     max_len = 0

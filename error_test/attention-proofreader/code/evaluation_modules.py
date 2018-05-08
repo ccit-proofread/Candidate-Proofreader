@@ -12,10 +12,10 @@ def statistics_evaluation(classes,target_index,x0, prob_logits,output_classes, o
         
         if(prob_logits[i][original_classes[i]] > PROOFREAD_BIAS * prob_logits[i][output_classes[i]]):
             output_word = original_word
-        '''
-        if(prob_logits[i][output_classes[i]] < PROOFREAD_BIAS):
-              output_word = original_word
-        '''
+        
+        # if(prob_logits[i][output_classes[i]] < PROOFREAD_BIAS):
+        #       output_word = original_word
+        
         # print("output:%.3lf, original:%.3lf" % (prob_logits[i][output_classes[i]],prob_logits[i][original_classes[i]]))
  
         if (output_word != original_word):  # 修改的文本
@@ -45,7 +45,7 @@ def print_evaluation(file):
     print("TN : %d\t FN : %d" % (TN, FN))
     file.write("TN : %d\t FN : %d\n" % (TN, FN))
     print("TPR : %d\t TPW : %d" % (TPR, TPW))
-    file.write("TPR : %d\t TPW : %d" % (TPR, TPW))
+    file.write("TPR : %d\t TPW : %d\n" % (TPR, TPW))
 
     Accuracy = (TP+TN)/(P+N)
     Error_Rate = 1-Accuracy

@@ -13,7 +13,6 @@ def main():
     row_num = TEST_DATA_SIZE
     
     with open(DATA0_PATH, 'r', encoding='utf-8') as f:
-        #rows = f.read(row_num).strip().split('\n')
         rows = []
         cnt = 0
         for line in f:
@@ -25,8 +24,8 @@ def main():
         data0 = [] 
         for one in rows:
             data0.append(int(one))
+
     with open(DATA1_PATH, 'r', encoding='utf-8') as f:
-        #rows = f.read(row_num).strip().split('\n')
         rows = []
         cnt = 0
         for line in f:
@@ -39,8 +38,8 @@ def main():
         for one in data1:
             for index, ele in enumerate(one):
                 one[index]=int(ele)
+
     with open(DATA2_PATH, 'r', encoding='utf-8') as f:
-        #rows = f.read(row_num).strip().split('\n')
         rows = []
         cnt = 0
         for line in f:
@@ -53,8 +52,8 @@ def main():
         for one in data2:
             for index, ele in enumerate(one):
                 one[index]=int(ele)
+
     with open(DATA3_PATH, 'r', encoding='utf-8') as f:
-        #rows = f.read(row_num).strip().split('\n')
         rows = []
         cnt = 0
         for line in f:
@@ -67,8 +66,8 @@ def main():
         for one in data3:
             for index, ele in enumerate(one):
                 one[index]=int(ele)
+
     with open(TARGET_PATH, 'r', encoding='utf-8') as f:
-        #rows = f.read(row_num).strip().split('\n')
         rows = []
         cnt = 0
         for line in f:
@@ -80,6 +79,7 @@ def main():
         target = [] 
         for one in rows:
             target.append(int(one))
+
     with open(VOCAB_PATH, 'r', encoding='utf-8') as f:
         global char_set
         char_set = f.read().split('\n')
@@ -114,7 +114,7 @@ def main():
         file = open(TEST_RESULT_PATH, 'w')
         print("In testing with model of epoch %d: " % (i-1))
         run_epoch(session, test_model, test_data, tf.no_op(), False,
-                  TEST_BATCH_SIZE, TEST_STEP_SIZE, char_set, file,False,False)
+                  TEST_BATCH_SIZE, TEST_STEP_SIZE, char_set, file ,False)
         file.close()
 
 if __name__ == "__main__":

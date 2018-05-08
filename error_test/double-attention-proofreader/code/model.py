@@ -1,10 +1,6 @@
 # -- coding: utf-8 --
 # =====================================================================
 import tensorflow as tf
-import os
-import numpy as np
-import time
-import random
 from paras import *
 
 class Proofreading_Model(object):
@@ -12,14 +8,12 @@ class Proofreading_Model(object):
         """
         :param is_training: is or not training, True/False
         :param batch_size: the size of one batch
-        :param num_steps: the length of one lstm
         """
         # 定义网络参数
         self.learning_rate = tf.Variable(float(LEARNING_RATE), trainable=False, dtype=tf.float32)
         self.learning_rate_decay_op = self.learning_rate.assign(self.learning_rate * LEARNING_RATE_DECAY_FACTOR)
         self.global_step = 0
         self.global_epoch = 0
-        self.batch_size = batch_size
 
         # 定义输入层,其维度是batch_size * num_steps
         self.pre_input = tf.placeholder(tf.int32, [batch_size, None])
@@ -32,11 +26,10 @@ class Proofreading_Model(object):
 
         self.one_hot_labels = tf.placeholder(tf.float32, [batch_size, None])
 
-        # 定义预期输出，它的维度和上面维度相同
-        self.targets = tf.placeholder(tf.int32, [batch_size, ])
-        embedding = tf.get_variable("embedding", [VOCAB_SIZE, HIDDEN_SIZE])  # embedding矩阵
+        embedding = tf.get_variable("embedding", [VOCAB_SIZE, HIDDEN_SIZE],
+                                    initializer=tf.contrib.layers.xavier_initializer())  # embedding矩阵
         # pre_context_model
-        with tf.variable_scope('Pre'):
+        with tf.variable_scope('Pre', initializer=tf.orthogonal_initializer()):
             pre_cell = tf.contrib.rnn.BasicLSTMCell(num_units=PRE_CONTEXT_HIDDEN_SIZE, forget_bias=0.0,
                                                     state_is_tuple=True)
             if is_training:
@@ -46,6 +39,7 @@ class Proofreading_Model(object):
             pre_input = tf.nn.embedding_lookup(embedding, self.pre_input)  # 将原本单词ID转为单词向量。
             if is_training:
                 pre_input = tf.nn.dropout(pre_input, KEEP_PROB)
+
             self.pre_initial_state = pre_lstm_cell.zero_state(batch_size, tf.float32)  # 初始化最初的状态。
             pre_outputs, pre_states = tf.nn.dynamic_rnn(pre_lstm_cell, pre_input,
                                                         sequence_length=self.pre_input_seq_length,
@@ -55,7 +49,7 @@ class Proofreading_Model(object):
             self.pre_final_state = pre_states  # 上文LSTM的最终状态
 
         # fol_context_model
-        with tf.variable_scope('Fol'):
+        with tf.variable_scope('Fol', initializer=tf.orthogonal_initializer()):
             fol_cell = tf.contrib.rnn.BasicLSTMCell(num_units=FOL_CONTEXT_HIDDEN_SIZE, forget_bias=0.0,
                                                     state_is_tuple=True)
             if is_training:
@@ -65,6 +59,7 @@ class Proofreading_Model(object):
             fol_input = tf.nn.embedding_lookup(embedding, self.fol_input)  # 将原本单词ID转为单词向量。
             if is_training:
                 fol_input = tf.nn.dropout(fol_input, KEEP_PROB)
+
             self.fol_initial_state = fol_lstm_cell.zero_state(batch_size, tf.float32)  # 初始化最初的状态。
             fol_outputs, fol_states = tf.nn.dynamic_rnn(fol_lstm_cell, fol_input,
                                                         sequence_length=self.fol_input_seq_length,
@@ -133,25 +128,16 @@ class Proofreading_Model(object):
             # global_step从0开始
             tf.summary.scalar('cost', self.cost)
             tf.summary.scalar('ave_cost', self.ave_cost)
-        # 只在训练模型时定义反向传播操作。
+            tf.summary.scalar('learning_rate', self.learning_rate)
 
-        # 记录accuracy
-        with tf.variable_scope('accuracy'):
-            correct_prediction = tf.equal(self.targets, tf.cast(tf.argmax(self.logits, -1), tf.int32))
-            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-            self.ave_accuracy = tf.Variable(0.0, trainable=False, dtype=tf.float32)
-            self.ave_accuracy_op = self.ave_accuracy.assign(tf.divide(
-                tf.add(tf.multiply(self.ave_accuracy, self.global_step), self.accuracy), self.global_step + 1))
-            # global_step从0开始
-            tf.summary.scalar('accuracy', self.accuracy)
-            tf.summary.scalar('ave_accuracy', self.ave_accuracy)
-            # 只在训练模型时定义反向传播操作。
         # 只在训练模型时定义反向传播操作。
         if not is_training: return
 
-        self.train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
-        # optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate)
-        # self.train_op = optimizer.minimize(self.cost)
+        trainable_variables = tf.trainable_variables()
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, trainable_variables), clip_norm = 5)
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
+        self.train_op = optimizer.apply_gradients(zip(grads, trainable_variables))
+        # self.train_op = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate).minimize(self.cost)
 
         self.merged_summary_op = tf.summary.merge_all()  # 收集节点
 
