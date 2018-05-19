@@ -35,9 +35,11 @@ def statistics_evaluation(classes,target_index,x0, prob_logits,output_classes, o
 
 
 def print_evaluation(file):
-    global TP, FP, TN, FN, P, N, TPW, TPR
+global TP, FP, TN, FN, P, N, TPW, TPR
     P = TP + FN
     N = TN + FP
+    print("PROOFREAD_BIAS: %.5f" % PROOFREAD_BIAS)
+    file.write("PROOFREAD_BIAS: %.5f \n" % PROOFREAD_BIAS)
     print("P : %d\t N : %d" % (P,N))
     file.write("P : %d\t N : %d\n" % (P,N))
     print("TP : %d\t FP : %d" % (TP, FP))
@@ -52,7 +54,9 @@ def print_evaluation(file):
     Recall = TP/P
     Precision = TP/(TP+FP)
     F1_Score = 2*Precision*Recall/(Precision+Recall)
-    Correction_Rate = TPR / P
+    Correct_Recall = TPR / P
+    Correct_Precison = TPR / (TP+FP)
+    Correct_F1_Score = 2*Correct_Precison*Correct_Recall/(Correct_Precison+Correct_Recall)
     Specificity = TN / N
     Delta = (P-(FP+FN+TPW)) / P 
     print("Accuracy : %.5f " % Accuracy)
@@ -65,10 +69,14 @@ def print_evaluation(file):
     file.write("Precision : %.5f \n" % Precision)
     print("F1_Score : %.5f " % F1_Score)
     file.write("F1_Score : %.5f \n" % F1_Score)
-    print("Correction_Rate : %.5f " % Correction_Rate)
-    file.write("Correction_Rate : %.5f \n" % Correction_Rate)
+    print("Correct_Recall : %.5f " % Correct_Recall)
+    file.write("Correct_Recall : %.5f \n" % Correct_Recall)
+    print("Correct_Precison : %.5f " % Correct_Precison)
+    file.write("Correct_Precison : %.5f \n" % Correct_Precison)
+    print("Correct_F1_Score : %.5f " % Correct_F1_Score)
+    file.write("Correct_F1_Score : %.5f \n" % Correct_F1_Score)
     print("Specificity : %.5f " % Specificity)
     file.write("Specificity : %.5f \n" % Specificity)
     print("Delta : %.5f " % Delta)
-    file.write("Delta : %.5f \n" % Delta)
+    file.write("Delta : %.5f \n\n" % Delta)
 
