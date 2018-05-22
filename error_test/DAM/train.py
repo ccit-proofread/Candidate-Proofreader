@@ -7,7 +7,6 @@ from collections import defaultdict
 #from utils import *
 from paras import *
 
-
 #Katz backoff smoothing technique
 TRIGRAM = "count_trigram"
 BIGRAM = "count_bigram"
