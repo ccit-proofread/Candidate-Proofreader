@@ -4,9 +4,6 @@ from paras import *
 from train import *
 alpha = 0.99
 
-
-
-
 ngram = BackoffModel('./origin_train_data/', './ngram_data/')
 
 def wordchangeprob(orig, updated, confusion_set):
